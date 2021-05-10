@@ -1,0 +1,34 @@
+baseurl: /
+languageCode: en-US
+title: Affan Khan
+disqusShortname: ''
+googleAnalytics: ''
+theme: hugo-sustain
+permalinks:
+  post: /post/:year/:month/:day/:slug
+params:
+  about: I'm a third-year Computer Science and Asian Studies student at UT Austin! I love all things statistics and computer science, and I am excited to be working at EOG Resources this summer as a Data Engineer Intern.
+  author: Affan Khan
+  avatar: affan.png
+  custom_css: []
+  custom_js: []
+  occupation: Data Engineer
+  social:
+    Email: affankhan@utexas.com
+    Github: affanakhan
+    LinkedIn: affanakhan
+    Instagram: aff4nk
+menu:
+  main:
+    - identifier: blog
+      name: blog
+      url: /post/
+      weight: 100
+    - identifier: projects
+      name: projects
+      url: /projects/
+      weight: 200
+    - identifier: resume
+      name: resume
+      url: /resume/
+      weight: 300

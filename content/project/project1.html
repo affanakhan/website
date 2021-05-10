@@ -1,0 +1,392 @@
+---
+title: "Project1.Rmd"
+author: "Affan Khan aak2856"
+date: "2021-05-09"
+output: html_document
+---
+
+
+
+<div id="introduction" class="section level2">
+<h2>0. Introduction</h2>
+<pre class="r"><code>human_data &lt;- read.csv(&quot;~/Desktop/SDS Project/averageheight_csv.csv&quot;)
+head(human_data)</code></pre>
+<pre><code>##       Country Average.Height.Male Average.Weight.Male Average.BMI.Male
+## 1 Netherlands                1.83                87.4             26.1
+## 2      Latvia                1.81                88.8             27.1
+## 3     Denmark                1.81                86.2             26.3
+## 4     Estonia                1.81                88.5             27.0
+## 5      Bosnia                1.81                86.5             26.4
+## 6     Iceland                1.81                88.8             27.1
+##   Average.Height.Female Average.Weight.Female Average.BMI.Female
+## 1                  1.69                  72.3               25.3
+## 2                  1.69                  75.4               26.4
+## 3                  1.68                  69.4               24.6
+## 4                  1.68                  73.4               26.0
+## 5                  1.67                  70.6               25.3
+## 6                  1.67                  71.4               25.6</code></pre>
+<pre class="r"><code>gdp_data &lt;- read.csv(&quot;~/Desktop/SDS Project/gdp_csv.csv&quot;)
+head(gdp_data)</code></pre>
+<pre><code>##   X.        Country GDP.nominal.2017.
+## 1  1  United States      1.948539e+13
+## 2  2          China      1.223770e+13
+## 3  3          Japan      4.872415e+12
+## 4  4        Germany      3.693204e+12
+## 5  5          India      2.650725e+12
+## 6  6 United Kingdom      2.637866e+12</code></pre>
+<p>To begin with, I have chosen 2 datasets linked to country data: Average Height/Weight/BMI per Country (human_data) (<a href="https://datahub.io/robgrootjen1/average-height" class="uri">https://datahub.io/robgrootjen1/average-height</a>) and Nominal GDP per country (gdp_data) (<a href="https://datahub.io/robgrootjen1/country-gdp" class="uri">https://datahub.io/robgrootjen1/country-gdp</a>). The human_data dataset includes the Country, Average Height (Male), Average Weight(Male), Average BMI (Male), Average Height (Female), Average Weight (Female), Average BMI (Female). On the other hand, the gdp_data dataset includes the Country and Nominal GDP columns. The GDP being in units of USD, whilst height is in meters, wegith in kg, and BMI in kg/m^2. The gdp_data was aquired through calculating a country’s consumption, government spending, investment, and net exports at the end of a calendar year. Whilst the human_data was aquired through national surverys and data collection from public health institutes worldwide. I chose these datasets due to my interest in health oreinted data and information and my interest in socioogy and human geography, I find it valuable to understand the world and different factors that atrrtibute to human experience. Lastly, associations that I can expect to find inlcude a negative correlation between Nominal GDP and Male/Female BMI and a positive correlation between Nominal GDP and Male/Female Weight, due to the fact that I expect wealthier countries to be healtheir leading to a higher BMI, but I also believe that wealthier countries may have more individuals that weight more due to more recources and less manual work. On the other hand I expect to find a negative correlation between Male/Female Height and Nominal GDP, I believe wealthier nations who keep their residents well fed and have more medical resources may lead to taller individuals.</p>
+</div>
+<div id="tidying-rearranging-widelong" class="section level2">
+<h2>1. Tidying: Rearranging Wide/Long</h2>
+<p>Since, my data sets are already tidy, I will use those functions somewhere else in my project (e.g., for rearranging summary statistics).</p>
+</div>
+<div id="joiningmerging" class="section level2">
+<h2>2. Joining/Merging</h2>
+<pre class="r"><code>library(dplyr)
+my_data &lt;- inner_join(human_data, gdp_data, by = &quot;Country&quot;)
+head(my_data)</code></pre>
+<pre><code>##       Country Average.Height.Male Average.Weight.Male Average.BMI.Male
+## 1 Netherlands                1.83                87.4             26.1
+## 2      Latvia                1.81                88.8             27.1
+## 3     Denmark                1.81                86.2             26.3
+## 4     Estonia                1.81                88.5             27.0
+## 5     Iceland                1.81                88.8             27.1
+## 6      Serbia                1.81                87.5             26.7
+##   Average.Height.Female Average.Weight.Female Average.BMI.Female  X.
+## 1                  1.69                  72.3               25.3  18
+## 2                  1.69                  75.4               26.4  99
+## 3                  1.68                  69.4               24.6  35
+## 4                  1.68                  73.4               26.0 100
+## 5                  1.67                  71.4               25.6 105
+## 6                  1.67                  71.7               25.7  86
+##   GDP.nominal.2017.
+## 1      830572618850
+## 2       30463302414
+## 3      329865537183
+## 4       26611651599
+## 5       24488467010
+## 6       41431648801</code></pre>
+<p>I joined human_data and gdp_data using the ‘dplyr’ inner_join function, the rationale for using an inner_join is that we will creates a new table which will combine human_data and gdp_data using the our join-predicate of ‘Country’. Thus, the new dataset my_data will only contain countries that have both all of their human_data colums such as the BMI/height/weight as well as the Nominal GDP so that there are no rows that contain N/A. The cases that were dropped are smaller countries will less resources to assess and analyze the health of their citizens. A problem with this is that we don’t have data from smaller nations and we would need to rely on other present countries to test our assumptions on trends.</p>
+</div>
+<div id="wrangling" class="section level2">
+<h2>3. Wrangling</h2>
+<pre class="r"><code># filter
+my_data %&gt;%
+    filter(Average.Height.Male &gt; 1.75, Average.Height.Female &gt; 
+        1.67)</code></pre>
+<pre><code>##       Country Average.Height.Male Average.Weight.Male Average.BMI.Male
+## 1 Netherlands                1.83                87.4             26.1
+## 2      Latvia                1.81                88.8             27.1
+## 3     Denmark                1.81                86.2             26.3
+## 4     Estonia                1.81                88.5             27.0
+##   Average.Height.Female Average.Weight.Female Average.BMI.Female  X.
+## 1                  1.69                  72.3               25.3  18
+## 2                  1.69                  75.4               26.4  99
+## 3                  1.68                  69.4               24.6  35
+## 4                  1.68                  73.4               26.0 100
+##   GDP.nominal.2017.
+## 1      830572618850
+## 2       30463302414
+## 3      329865537183
+## 4       26611651599</code></pre>
+<pre class="r"><code># select
+my_data %&gt;%
+    select(Country, Average.Weight.Male, Average.Weight.Female)</code></pre>
+<pre><code>##        Country Average.Weight.Male Average.Weight.Female
+## 1  Netherlands                87.4                  72.3
+## 2       Latvia                88.8                  75.4
+## 3      Denmark                86.2                  69.4
+## 4      Estonia                88.5                  73.4
+## 5      Iceland                88.8                  71.4
+## 6       Serbia                87.5                  71.7
+## 7      Belgium                87.8                  70.0
+## 8      Croatia                90.7                  74.1
+## 9       Norway                88.8                  72.2
+## 10      Sweden                86.8                  70.0
+## 11     Germany                88.8                  71.6
+## 12    Slovenia                86.2                  73.3
+## 13     Finland                86.2                  70.8
+## 14    Slovakia                87.8                  71.4
+## 15   Lithuania                86.8                  71.9
+## 16   Australia                88.8                  73.0
+## 17      France                83.3                  66.4
+## 18     Ukraine                85.5                  72.7
+## 19     Belarus                84.0                  74.1
+## 20    Bulgaria                86.2                  70.5
+## 21     Ireland                88.7                  73.8
+## 22     Austria                84.3                  67.2
+## 23  Luxembourg                86.2                  70.0
+## 24  Montenegro                85.5                  71.3
+## 25      Canada                86.8                  71.8
+## 26 Switzerland                84.9                  64.0
+## 27       Tonga                96.2                  93.4
+## 28     Grenada                78.6                  78.4
+## 29       Italy                83.6                  67.0
+## 30      Greece                86.5                  72.4
+## 31      Poland                85.8                  70.2
+## 32     Hungary                88.3                  71.5
+## 33      Israel                86.8                  71.1
+##  [ reached &#39;max&#39; / getOption(&quot;max.print&quot;) -- omitted 63 rows ]</code></pre>
+<pre class="r"><code># arrange
+my_data %&gt;%
+    arrange(desc(GDP.nominal.2017.))</code></pre>
+<pre><code>##      Country Average.Height.Male Average.Weight.Male Average.BMI.Male
+## 1      China                1.71                70.5             24.1
+## 2      Japan                1.71                69.0             23.6
+## 3    Germany                1.80                88.8             27.4
+## 4      India                1.65                59.1             21.7
+## 5     France                1.79                83.3             26.0
+## 6     Brazil                1.73                78.7             26.3
+## 7      Italy                1.77                83.6             26.7
+## 8     Canada                1.78                86.8             27.4
+## 9     Russia                1.76                80.2             25.9
+## 10 Australia                1.79                88.8             27.7
+## 11     Spain                1.76                84.3             27.2
+##    Average.Height.Female Average.Weight.Female Average.BMI.Female X.
+## 1                   1.59                  59.4               23.5  2
+## 2                   1.58                  54.7               21.9  3
+## 3                   1.66                  71.6               26.0  4
+## 4                   1.52                  50.6               21.9  5
+## 5                   1.65                  66.4               24.4  7
+## 6                   1.60                  68.6               26.8  8
+## 7                   1.64                  67.0               24.9  9
+## 8                   1.64                  71.8               26.7 10
+## 9                   1.65                  72.7               26.7 11
+## 10                  1.65                  73.0               26.8 13
+## 11                  1.63                  66.7               25.1 14
+##    GDP.nominal.2017.
+## 1       1.223770e+13
+## 2       4.872415e+12
+## 3       3.693204e+12
+## 4       2.650725e+12
+## 5       2.582501e+12
+## 6       2.053595e+12
+## 7       1.943835e+12
+## 8       1.647120e+12
+## 9       1.578417e+12
+## 10      1.323421e+12
+## 11      1.314314e+12
+##  [ reached &#39;max&#39; / getOption(&quot;max.print&quot;) -- omitted 85 rows ]</code></pre>
+<pre class="r"><code># group_by
+my_data %&gt;%
+    group_by(GDP.nominal.2017.)</code></pre>
+<pre><code>## # A tibble: 96 x 9
+## # Groups:   GDP.nominal.2017. [96]
+##    Country Average.Height.… Average.Weight.… Average.BMI.Male Average.Height.…
+##    &lt;fct&gt;              &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;
+##  1 Nether…             1.83             87.4             26.1             1.69
+##  2 Latvia              1.81             88.8             27.1             1.69
+##  3 Denmark             1.81             86.2             26.3             1.68
+##  4 Estonia             1.81             88.5             27               1.68
+##  5 Iceland             1.81             88.8             27.1             1.67
+##  6 Serbia              1.81             87.5             26.7             1.67
+##  7 Belgium             1.81             87.8             26.8             1.65
+##  8 Croatia             1.8              90.7             28               1.66
+##  9 Norway              1.8              88.8             27.4             1.66
+## 10 Sweden              1.8              86.8             26.8             1.66
+## # … with 86 more rows, and 4 more variables: Average.Weight.Female &lt;dbl&gt;,
+## #   Average.BMI.Female &lt;dbl&gt;, X. &lt;int&gt;, GDP.nominal.2017. &lt;dbl&gt;</code></pre>
+<pre class="r"><code># mutate
+my_data &lt;- my_data %&gt;%
+    mutate(Average.Height = (Average.Height.Male + Average.Height.Female)/2)
+# summarize
+my_data %&gt;%
+    summarize(Average.Height.Male = mean(Average.Height.Male, 
+        na.rm = TRUE))</code></pre>
+<pre><code>##   Average.Height.Male
+## 1            1.725417</code></pre>
+<p>To begin with, I used all six core <code>dplyr</code> functions in the service of generating summary tables/statistics, I was able to better understand my dataset through these functions. For example, I started by filtering the dataset by Height of both genders to find Countries wherein the general populations where on average taller than the rest of the world leading me to get more developed countries. Afterwords, I selected the Weights of both males and females to better understand and closely look at that data. Then, I decided to arrange to countries by nominal GDP in descending order to see the wealthier nations in order. Then I grouped the dataset by GDP. Afterwards, I mutated a new column for overall average height called ‘Average.Height’, wherein I would be able to use the columnn for future analysis. Afterwards, I summarized the data via mean of ‘Average.Height.Male’. Since the primary focus of my study to assess the weight and height of populations and the relation to the GDP, this dplyr summary gives me a lot of deep insight.</p>
+<pre class="r"><code>my_data.sum &lt;- my_data %&gt;%
+    select(Average.Height.Male, Average.Weight.Male, Average.BMI.Male, 
+        Average.Height.Female, Average.Weight.Female, Average.BMI.Female, 
+        GDP.nominal.2017.) %&gt;%
+    summarize_each(funs(min = min, max = max, q25 = quantile(., 
+        0.25), median = median, q75 = quantile(., 0.75), mean = mean, 
+        sd = sd))
+
+dim(my_data.sum)</code></pre>
+<pre><code>## [1]  1 49</code></pre>
+<pre class="r"><code>my_data.stats.tidy &lt;- my_data.sum %&gt;%
+    gather(stat, val) %&gt;%
+    separate(stat, into = c(&quot;var&quot;, &quot;stat&quot;), sep = &quot;_&quot;) %&gt;%
+    spread(stat, val)
+
+print(my_data.stats.tidy)</code></pre>
+<pre><code>##                     var         max         mean       median         min
+## 1    Average.BMI.Female 3.41000e+01 2.599896e+01 2.610000e+01       21.00
+## 2      Average.BMI.Male 3.07000e+01 2.570833e+01 2.655000e+01       20.10
+## 3 Average.Height.Female 1.69000e+00 1.602396e+00 1.600000e+00        1.49
+## 4   Average.Height.Male 1.83000e+00 1.725417e+00 1.720000e+00        1.60
+## 5 Average.Weight.Female 9.34000e+01 6.695729e+01 6.905000e+01       48.30
+## 6   Average.Weight.Male 9.62000e+01 7.692500e+01 8.140000e+01       54.30
+## 7     GDP.nominal.2017. 1.22377e+13 5.419265e+11 1.188071e+11 39731317.00
+##            q25          q75           sd
+## 1 2.435000e+01 2.710000e+01 2.667050e+00
+## 2 2.360000e+01 2.740000e+01 2.433956e+00
+## 3 1.560000e+00 1.650000e+00 5.031992e-02
+## 4 1.680000e+00 1.780000e+00 5.810909e-02
+## 5 6.070000e+01 7.247500e+01 8.889103e+00
+## 6 6.677500e+01 8.620000e+01 1.098750e+01
+## 7 2.617881e+10 3.816813e+11 1.440885e+12</code></pre>
+<pre class="r"><code>my_data &lt;- my_data %&gt;%
+    mutate(Male_Short.Tall = ifelse(Average.Height.Male &lt; 1.72, 
+        &quot;Short&quot;, &quot;Tall&quot;))
+my_data &lt;- my_data %&gt;%
+    mutate(my_data, Female_Short.Tall = ifelse(Average.Height.Female &lt; 
+        1.6, &quot;Short&quot;, &quot;Tall&quot;))
+head(my_data)</code></pre>
+<pre><code>##       Country Average.Height.Male Average.Weight.Male Average.BMI.Male
+## 1 Netherlands                1.83                87.4             26.1
+## 2      Latvia                1.81                88.8             27.1
+## 3     Denmark                1.81                86.2             26.3
+## 4     Estonia                1.81                88.5             27.0
+## 5     Iceland                1.81                88.8             27.1
+## 6      Serbia                1.81                87.5             26.7
+##   Average.Height.Female Average.Weight.Female Average.BMI.Female  X.
+## 1                  1.69                  72.3               25.3  18
+## 2                  1.69                  75.4               26.4  99
+## 3                  1.68                  69.4               24.6  35
+## 4                  1.68                  73.4               26.0 100
+## 5                  1.67                  71.4               25.6 105
+## 6                  1.67                  71.7               25.7  86
+##   GDP.nominal.2017. Average.Height Male_Short.Tall Female_Short.Tall
+## 1      830572618850          1.760            Tall              Tall
+## 2       30463302414          1.750            Tall              Tall
+## 3      329865537183          1.745            Tall              Tall
+## 4       26611651599          1.745            Tall              Tall
+## 5       24488467010          1.740            Tall              Tall
+## 6       41431648801          1.740            Tall              Tall</code></pre>
+<pre class="r"><code>my_data.sum.group &lt;- my_data %&gt;%
+    group_by(Male_Short.Tall, Female_Short.Tall) %&gt;%
+    select(Average.Height.Male, Average.Weight.Male, Average.BMI.Male, 
+        Average.Height.Female, Average.Weight.Female, Average.BMI.Female, 
+        GDP.nominal.2017.) %&gt;%
+    summarize_each(funs(min = min, max = max, q25 = quantile(., 
+        0.25), median = median, q75 = quantile(., 0.75), mean = mean, 
+        sd = sd))
+
+dim(my_data.sum.group)</code></pre>
+<pre><code>## [1]  4 51</code></pre>
+<pre class="r"><code>print(my_data.sum.group)</code></pre>
+<pre><code>## # A tibble: 4 x 51
+## # Groups:   Male_Short.Tall [2]
+##   Male_Short.Tall Female_Short.Ta… Average.Height.… Average.Weight.…
+##   &lt;chr&gt;           &lt;chr&gt;                       &lt;dbl&gt;            &lt;dbl&gt;
+## 1 Short           Short                        1.6              54.3
+## 2 Short           Tall                         1.7              68.2
+## 3 Tall            Short                        1.72             74.8
+## 4 Tall            Tall                         1.72             65.1
+## # … with 47 more variables: Average.BMI.Male_min &lt;dbl&gt;,
+## #   Average.Height.Female_min &lt;dbl&gt;, Average.Weight.Female_min &lt;dbl&gt;,
+## #   Average.BMI.Female_min &lt;dbl&gt;, GDP.nominal.2017._min &lt;dbl&gt;,
+## #   Average.Height.Male_max &lt;dbl&gt;, Average.Weight.Male_max &lt;dbl&gt;,
+## #   Average.BMI.Male_max &lt;dbl&gt;, Average.Height.Female_max &lt;dbl&gt;,
+## #   Average.Weight.Female_max &lt;dbl&gt;, Average.BMI.Female_max &lt;dbl&gt;,
+## #   GDP.nominal.2017._max &lt;dbl&gt;, Average.Height.Male_q25 &lt;dbl&gt;,
+## #   Average.Weight.Male_q25 &lt;dbl&gt;, Average.BMI.Male_q25 &lt;dbl&gt;,
+## #   Average.Height.Female_q25 &lt;dbl&gt;, Average.Weight.Female_q25 &lt;dbl&gt;,
+## #   Average.BMI.Female_q25 &lt;dbl&gt;, GDP.nominal.2017._q25 &lt;dbl&gt;,
+## #   Average.Height.Male_median &lt;dbl&gt;, Average.Weight.Male_median &lt;dbl&gt;,
+## #   Average.BMI.Male_median &lt;dbl&gt;, Average.Height.Female_median &lt;dbl&gt;,
+## #   Average.Weight.Female_median &lt;dbl&gt;, Average.BMI.Female_median &lt;dbl&gt;,
+## #   GDP.nominal.2017._median &lt;dbl&gt;, Average.Height.Male_q75 &lt;dbl&gt;,
+## #   Average.Weight.Male_q75 &lt;dbl&gt;, Average.BMI.Male_q75 &lt;dbl&gt;,
+## #   Average.Height.Female_q75 &lt;dbl&gt;, Average.Weight.Female_q75 &lt;dbl&gt;,
+## #   Average.BMI.Female_q75 &lt;dbl&gt;, GDP.nominal.2017._q75 &lt;dbl&gt;,
+## #   Average.Height.Male_mean &lt;dbl&gt;, Average.Weight.Male_mean &lt;dbl&gt;,
+## #   Average.BMI.Male_mean &lt;dbl&gt;, Average.Height.Female_mean &lt;dbl&gt;,
+## #   Average.Weight.Female_mean &lt;dbl&gt;, Average.BMI.Female_mean &lt;dbl&gt;,
+## #   GDP.nominal.2017._mean &lt;dbl&gt;, Average.Height.Male_sd &lt;dbl&gt;,
+## #   Average.Weight.Male_sd &lt;dbl&gt;, Average.BMI.Male_sd &lt;dbl&gt;,
+## #   Average.Height.Female_sd &lt;dbl&gt;, Average.Weight.Female_sd &lt;dbl&gt;,
+## #   Average.BMI.Female_sd &lt;dbl&gt;, GDP.nominal.2017._sd &lt;dbl&gt;</code></pre>
+<p>Furthermore, I decided to create a dataframe that would summarize the min, max, q1, q2, median, mean, and sd of all of the numeric variables (since my dataset was wholy numeric). I used the summarize_each function in order to make it easier to group. Afterwards, I used the tidy functions of gather, seperate, and spread respectively to create a clean table. Since I didn’t have more than 2 categorical variables, I decided to use the mutate function to create 2 catergorical functions that are able to store whether a population is on average short or tall for both males and females, I named these ‘Male_Short.Tall’ and ‘Female.Short.Tall’. Then using the methodology above I summarized each variable for the min, max, q1, q2, median, mean, and sd. Through this analysis I was able to understand that while the average height and weight for females are less than males, their BMIs are greater by a margin or 0.02. In addition, I also learned that in our dataset the ‘GDP.nominal.2017.’ has an immense disparity and the difference between the max and the mean is far greater than othe numerical variables indicating that the upcoming analysis will be extremely crucial as it will enable us to futher understand the trends due to diverse data.</p>
+</div>
+<div id="visualizing" class="section level2">
+<h2>4. Visualizing</h2>
+<pre class="r"><code># heatmap
+matrix &lt;- cor(my_data[sapply(my_data, function(x) !is.factor(x) &amp; 
+    !is.character(x))])
+library(reshape2)
+mlt &lt;- melt(matrix)
+head(mlt)</code></pre>
+<pre><code>##                    Var1                Var2     value
+## 1   Average.Height.Male Average.Height.Male 1.0000000
+## 2   Average.Weight.Male Average.Height.Male 0.8729038
+## 3      Average.BMI.Male Average.Height.Male 0.6374265
+## 4 Average.Height.Female Average.Height.Male 0.9721723
+## 5 Average.Weight.Female Average.Height.Male 0.6801400
+## 6    Average.BMI.Female Average.Height.Male 0.3160710</code></pre>
+<pre class="r"><code>library(ggplot2)
+ggplot(data = mlt, aes(x = Var1, y = Var2, fill = value)) + geom_tile() + 
+    theme(axis.text.x = element_text(angle = 90, vjust = 1, hjust = 1)) + 
+    ggtitle(&quot;Correlation Heatmap&quot;)</code></pre>
+<p><img src="/project/project1_files/figure-html/visualize-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># plot 2
+library(ggplot2)
+ggplot(my_data, aes(x = GDP.nominal.2017., y = Average.Height)) + 
+    geom_point() + labs(title = &quot;Scatterplot: Nominal GDP vs Average Male BMI&quot;, 
+    x = &quot;Nominal GDP (USD)&quot;, y = &quot;Average Male BMI (kg/m^2)&quot;) + 
+    geom_point() + geom_smooth(method = lm) + scale_color_brewer(palette = &quot;Accent&quot;) + 
+    theme_minimal()</code></pre>
+<p><img src="/project/project1_files/figure-html/visualize-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># plot 3
+ggplot(my_data, aes(x = GDP.nominal.2017., col = Male_Short.Tall)) + 
+    geom_density() + labs(title = &quot;Density Plot: Nominal GDP Density by Male Height&quot;, 
+    x = &quot;Nominal GDP (USD)&quot;, y = &quot;Density&quot;, fill = &quot;Height Categorization&quot;) + 
+    theme_minimal()</code></pre>
+<p><img src="/project/project1_files/figure-html/visualize-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p>For the Scatterplot: Nominal GDP vs Average Male BMI, there appears to be a slight postive correlation between the Nominal GDP(USD) and the Average Male BMI (kg/m^2). The correlation between these two variables are very small but it indicates that the GDP of a country has some sort of an impact on the general health of a population. It is also to be noted that this plot has a few outliers such as the nations of india and China that have larger Nominal GDPs but below average Average Male BMI (kg/m^2). This is due to the fact that the Nominal GDP is not the same as the GDP per capita that calculates a GDP against the population of the respective nation thus being a better measure of equality. Discounting the huge economies of India and China we are able to see that we have a much stonger postive correlation between the Nominal GDP vs Average Male BMI, indicating that for most nations of the world the overall wealth of a nation is an indicator of the peoples health but exceptions exixst such as India and China where th wellness of a people is lagging behind the nations economic progress.</p>
+<p>For the "Density Plot: Nominal GDP Density by Male Height, there appears to be a correlation between the Nominal GDP(USD) and the Height categorization of a country’s male population. It appears that there is a higher density of shorter nations with lower Nominal GDPs in comparison to countries with an average taller population. It also appears that there are 2-3 nations with short populations such as India and China that have large Nominal GDPs that are much larger in comparsion to the GDPs of other short nations. In addition, it is clear that the median Nominal GDP for taller nations is much higher that shorter nations leading to the assessment that higher nominal GDPs can lead to taller populations in males. Discounting the huge economies of India and China we are able to see that there is a higher density of shorter population nations with low GDPs, indicating that for most nations of the world the overall wealth of a nation is an indicator of the peoples health but exceptions exixst such as India and China where th wellness of a people is lagging behind the nations economic progress</p>
+</div>
+<div id="dimensionality-reduction" class="section level2">
+<h2>4. Dimensionality Reduction</h2>
+<pre class="r"><code>pca &lt;- my_data %&gt;%
+    select(function(x) !is.factor(x) &amp; !is.character(x)) %&gt;%
+    scale() %&gt;%
+    prcomp()
+pca</code></pre>
+<pre><code>## Standard deviations (1, .., p=9):
+## [1] 2.347772e+00 1.340472e+00 9.834541e-01 7.479747e-01 3.724676e-01
+## [6] 1.553780e-01 3.793852e-02 1.168221e-02 1.610627e-15
+## 
+## Rotation (n x k) = (9 x 9):
+##                                PC1         PC2         PC3          PC4
+## Average.Height.Male   -0.381297010  0.26317818 -0.25299710 -0.052766663
+## Average.Weight.Male   -0.419441906  0.01283666  0.05722399  0.049238652
+## Average.BMI.Male      -0.380755360 -0.17451243  0.29071652  0.118657101
+## Average.Height.Female -0.380186994  0.22212298 -0.30036141 -0.143517287
+## Average.Weight.Female -0.394289057 -0.22186456  0.17395742 -0.001118607
+## Average.BMI.Female    -0.293713329 -0.42152623  0.42319565  0.103419855
+## X.                     0.004546667 -0.57881713 -0.29810758 -0.743348739
+## GDP.nominal.2017.      0.019549938  0.47792059  0.61893998 -0.622672644
+## Average.Height        -0.383444951  0.24583256 -0.27690113 -0.095545946
+##                               PC5          PC6          PC7          PC8
+## Average.Height.Male    0.02244803 -0.662320474 -0.143127439 -0.256864715
+## Average.Weight.Male   -0.42071880 -0.136134030  0.519097334  0.594311243
+## Average.BMI.Male      -0.62976911  0.235916815 -0.338039842 -0.399297324
+## Average.Height.Female  0.20327303  0.645128201 -0.197946050  0.232260041
+## Average.Weight.Female  0.41883239  0.143466296  0.587141383 -0.473615527
+## Average.BMI.Female     0.42185570 -0.207823452 -0.427682377  0.377084692
+## X.                    -0.13932850 -0.062925783 -0.011543960  0.003038000
+## GDP.nominal.2017.      0.01717696 -0.009444439  0.002123149  0.003609803
+## Average.Height         0.10710949 -0.055946034 -0.169746667 -0.030079779
+##                                 PC9
+## Average.Height.Male   -4.392274e-01
+## Average.Weight.Male   -2.831069e-15
+## Average.BMI.Male       2.192690e-15
+## Average.Height.Female -3.803516e-01
+## Average.Weight.Female -1.318390e-15
+## Average.BMI.Female     8.014422e-16
+## X.                     1.214306e-16
+## GDP.nominal.2017.      1.075529e-16
+## Average.Height         8.138869e-01</code></pre>
+<pre class="r"><code>pca_d &lt;- data.frame(pca$x, male_height = my_data$Male_Short.Tall)
+ggplot(pca_d, aes(x = PC1, y = PC2, color = male_height)) + geom_point()</code></pre>
+<p><img src="/project/project1_files/figure-html/pca-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>percent &lt;- 100 * (pca$sdev^2/sum(pca$sdev^2))
+pd &lt;- data.frame(percent = percent, PC = 1:length(percent))
+ggplot(pd, aes(x = PC, y = percent)) + geom_col()</code></pre>
+<p><img src="/project/project1_files/figure-html/pca-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>To begin with, I chose to use PCA as the primary factor of my observation of the variance due to the fact that I had a large number of numerical variables. In accordance to the putput, I have 9 PCAs 2.347772e+00 1.340472e+00 9.834541e-01 7.479747e-01 3.724676e-01 1.553780e-01 3.793852e-02 1.168221e-02 (in order of PCA) all surmounting to the variance of 1.610627e-15. In accordance to the 1st PCA graph, it is clear that shorter male population countries had a much higher varince and more unique and spread values in comaprsion to countries with taller people on average. In overall, according to this study is ultimately clear that the nominal GDP of a nation state is varied and reflects the overall state of nation rather than the progress of individuals thsu it is not completely wise to compare it against the personal health metrics of an average population, rather the per capita data of GDP is more suitable. However, this study is able to point out larger disparities where countries with less healtheir populations and shorter populations with large economies are not dong enough for their citizens.</p>
+</div>

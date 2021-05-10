@@ -1,0 +1,39 @@
+---
+title: Affan's Python Code
+author: Affan Khan
+date: '2021-05-09'
+slug: affan-s-python-code
+categories: []
+tags: [r, python, germany]
+description: ''
+---
+
+```{r setup}
+#sinstall.packages('reticulate')
+library(reticulate)
+my_string <- "Hi, my name is Affan Khan :)))))"
+```
+
+Sample Python code from class PPT.
+
+```{python}
+list1=[1,2,3,4]
+list2=['a','b','c','d']
+print(list1[0])
+```
+
+Demonstrating Python and R Talking to One Another
+
+```{python}
+my_string = "I'm a UT Austin Student and I'm from Sugar Land, Texas"
+print(r, my_string, my_string)
+```
+
+```{r}
+cat(c(my_string, py$my_string))
+
+```
+
+Germany is my favorite country in the world, here is the Neuschwanstein Castle!
+
+![](images/germany.jpeg)

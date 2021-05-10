@@ -1,0 +1,3 @@
+"0","#sinstall.packages('reticulate')"
+"0","library(reticulate)"
+"0","my_string <- ""Hi, my name is Affan Khan :)))))"""

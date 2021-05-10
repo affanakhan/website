@@ -1,0 +1,134 @@
+---
+title: "Project1.Rmd"
+author: "Affan Khan aak2856"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+
+# Setting libraries and installing new packages
+library(tidyverse)
+library(cluster)
+```
+
+## 0. Introduction
+
+```{r intro}
+human_data <- read.csv("~/Desktop/SDS Project/averageheight_csv.csv")
+head(human_data)
+gdp_data <- read.csv("~/Desktop/SDS Project/gdp_csv.csv")
+head(gdp_data)
+
+```
+
+To begin with, I have chosen 2 datasets linked to country data: Average Height/Weight/BMI per Country (human_data) (https://datahub.io/robgrootjen1/average-height) and Nominal GDP per country (gdp_data) (https://datahub.io/robgrootjen1/country-gdp). The human_data dataset includes the Country, Average Height (Male), Average Weight(Male), Average BMI (Male), Average Height (Female), Average Weight (Female), Average BMI (Female). On the other hand, the gdp_data dataset includes the Country and Nominal GDP columns. The GDP being in units of USD, whilst height is in meters, wegith in kg, and BMI in kg/m^2.  The gdp_data was aquired through calculating a country's consumption, government spending, investment, and net exports at the end of a calendar year. Whilst the human_data was aquired through national surverys and data collection from public health institutes worldwide. I chose these datasets due to my interest in health oreinted data and information and my interest in socioogy and human geography, I find it valuable to understand the world and different factors that atrrtibute to human experience. Lastly, associations that I can expect to find inlcude a negative correlation between Nominal GDP and Male/Female BMI and a positive correlation between Nominal GDP and Male/Female Weight, due to the fact that I expect wealthier countries to be healtheir leading to a higher BMI, but I also believe that wealthier countries may have more individuals that weight more due to more recources and less manual work. On the other hand I expect to find a negative correlation between Male/Female Height and Nominal GDP, I believe wealthier nations who keep their residents well fed and have more medical resources may lead to taller individuals. 
+
+## 1. Tidying: Rearranging Wide/Long
+
+Since, my data sets are already tidy, I will use those functions somewhere else in my project (e.g., for rearranging summary statistics). 
+
+## 2. Joining/Merging
+
+```{r join}
+library(dplyr)
+my_data <- inner_join(human_data,gdp_data,by="Country")
+head(my_data)
+```
+
+I joined human_data and gdp_data using the 'dplyr' inner_join function, the rationale for using an inner_join is that we will creates a new table which will combine human_data and gdp_data using the our join-predicate of 'Country'. Thus, the new dataset my_data will only contain countries that have both all of their human_data colums such as the BMI/height/weight as well as the Nominal GDP so that there are no rows that contain N/A. The cases that were dropped are smaller countries will less resources to assess and analyze the health of their citizens. A problem with this is that we don't have data from smaller nations and we would need to rely on other present countries to test our assumptions on trends.
+
+## 3. Wrangling
+
+```{r wrangle dplyr}
+#filter
+my_data %>% filter(Average.Height.Male > 1.75, Average.Height.Female > 1.67)
+#select
+my_data %>% select(Country, Average.Weight.Male, Average.Weight.Female)
+#arrange
+my_data %>% arrange(desc(GDP.nominal.2017.))
+#group_by
+my_data %>% group_by(GDP.nominal.2017.)
+#mutate
+my_data <- my_data %>% mutate(Average.Height = (Average.Height.Male + Average.Height.Female)/2)
+#summarize
+my_data %>% summarize(Average.Height.Male = mean(Average.Height.Male, na.rm = TRUE))
+
+```
+
+To begin with, I used all six core `dplyr` functions in the service of generating summary tables/statistics, I was able to better understand my dataset through these functions. For example, I started by filtering the dataset by Height of both genders to find Countries wherein the general populations where on average taller than the rest of the world leading me to get more developed countries. Afterwords, I selected the Weights of both males and females to better understand and closely look at that data. Then, I decided to arrange to countries by nominal GDP in descending order to see the wealthier nations in order. Then I grouped the dataset by GDP. Afterwards, I mutated a new column for overall average height called 'Average.Height', wherein I would be able to use the columnn for future analysis. Afterwards, I summarized the data via mean of 'Average.Height.Male'. Since the primary focus of my study to assess the weight and height of populations and the relation to the GDP, this dplyr summary gives me a lot of deep insight. 
+
+```{r wrangle summary}
+my_data.sum <- my_data %>% select(Average.Height.Male, Average.Weight.Male, Average.BMI.Male, Average.Height.Female, Average.Weight.Female, Average.BMI.Female, GDP.nominal.2017.) %>% 
+  summarize_each(funs(min = min, max = max,q25 = quantile(., 0.25),  median = median, q75 = quantile(., 0.75), 
+                      mean = mean, 
+                      sd = sd))
+
+dim(my_data.sum)
+
+my_data.stats.tidy <- my_data.sum %>% gather(stat, val) %>%
+  separate(stat, into = c("var", "stat"), sep = "_") %>%
+  spread(stat, val)
+
+print(my_data.stats.tidy)
+
+my_data <- my_data %>% mutate(Male_Short.Tall = ifelse(Average.Height.Male < 1.72, "Short", "Tall"))
+my_data <- my_data %>% mutate(my_data, Female_Short.Tall = ifelse(Average.Height.Female < 1.60, "Short", "Tall"))
+head(my_data)
+
+my_data.sum.group <- my_data %>% group_by(Male_Short.Tall, Female_Short.Tall) %>% select(Average.Height.Male, Average.Weight.Male, Average.BMI.Male, Average.Height.Female, Average.Weight.Female, Average.BMI.Female, GDP.nominal.2017.) %>% 
+  summarize_each(funs(min = min, max = max,q25 = quantile(., 0.25), median = median, q75 = quantile(., 0.75), mean = mean, sd = sd))
+
+dim(my_data.sum.group)
+print(my_data.sum.group)
+
+```
+
+Furthermore, I decided to create a dataframe that would summarize the min, max, q1, q2, median, mean, and sd of all of the numeric variables (since my dataset was wholy numeric). I used the summarize_each function in order to make it easier to group. Afterwards, I used the tidy functions of gather, seperate, and spread respectively to create a clean table. Since I didn't have more than 2 categorical variables, I decided to use the mutate function to create 2 catergorical functions that are able to store whether a population is on average short or tall for both males and females, I named these 'Male_Short.Tall' and 'Female.Short.Tall'. Then using the methodology above I summarized each variable for the min, max, q1, q2, median, mean, and sd. Through this analysis I was able to understand that while the average height and weight for females are less than males, their BMIs are greater by a margin or 0.02. In addition, I also learned that in our dataset the 'GDP.nominal.2017.' has an immense disparity and the difference between the max and the mean is far greater than othe numerical variables indicating that the upcoming analysis will be extremely crucial as it will enable us to futher understand the trends due to diverse data. 
+
+
+
+## 4. Visualizing 
+
+```{r visualize}
+#heatmap
+matrix <- cor(my_data[sapply(my_data, function(x) !is.factor(x) & !is.character(x))])
+library(reshape2)
+mlt <- melt(matrix)
+head(mlt)
+library(ggplot2)
+ggplot(data = mlt, aes(x=Var1, y=Var2, fill=value)) + 
+  geom_tile() + theme(axis.text.x = element_text(angle = 90, vjust = 1, hjust = 1)) + ggtitle("Correlation Heatmap")
+#plot 2
+library(ggplot2)
+ggplot(my_data, aes(x=GDP.nominal.2017., y=Average.Height)) + geom_point() + labs(title="Scatterplot: Nominal GDP vs Average Male BMI", x="Nominal GDP (USD)", y="Average Male BMI (kg/m^2)") + geom_point()+ geom_smooth(method=lm) + scale_color_brewer(palette="Accent") + theme_minimal()
+#plot 3
+ggplot(my_data, aes(x=GDP.nominal.2017., col=Male_Short.Tall)) + geom_density() + labs(title="Density Plot: Nominal GDP Density by Male Height", x="Nominal GDP (USD)", y="Density", fill = "Height Categorization") + theme_minimal()
+
+```
+
+For the Scatterplot: Nominal GDP vs Average Male BMI, there appears to be a slight postive correlation between the Nominal GDP(USD) and the Average Male BMI (kg/m^2). The correlation between these two variables are very small but it indicates that the GDP of a country has some sort of an impact on the general health of a population. It is also to be noted that this plot has a few outliers such as the nations of india and China that have larger Nominal GDPs but below average Average Male BMI (kg/m^2). This is due to the fact that the Nominal GDP is not the same as the GDP per capita that calculates a GDP against the population of the respective nation thus being a better measure of equality. Discounting the huge economies of India and China we are able to see that we have a much stonger postive correlation between the Nominal GDP vs Average Male BMI, indicating that for most nations of the world the overall wealth of a nation is an indicator of the peoples health but exceptions exixst such as India and China where th wellness of a people is lagging behind the nations economic progress. 
+
+For the "Density Plot: Nominal GDP Density by Male Height, there appears to be a correlation between the Nominal GDP(USD) and the Height categorization of a country's male population. It appears that there is a higher density of shorter nations with lower Nominal GDPs in comparison to countries with an average taller population. It also appears that there are 2-3 nations with short populations such as India and China that have large Nominal GDPs that are much larger in comparsion to the GDPs of other short nations. In addition, it is clear that the median Nominal GDP for taller nations is much higher that shorter nations leading to the assessment that higher nominal GDPs can lead to taller populations in males. Discounting the huge economies of India and China we are able to see that there is a higher density of shorter population nations with low GDPs, indicating that for most nations of the world the overall wealth of a nation is an indicator of the peoples health but exceptions exixst such as India and China where th wellness of a people is lagging behind the nations economic progress
+
+## 4. Dimensionality Reduction 
+
+```{r pca}
+
+pca <- my_data %>% select(function(x) !is.factor(x) & !is.character(x)) %>% scale() %>% prcomp()
+pca
+pca_d <- data.frame(pca$x, male_height = my_data$Male_Short.Tall)
+ggplot(pca_d, aes(x = PC1, y = PC2, color = male_height)) + 
+  geom_point()
+
+percent <- 100* (pca$sdev^2 / sum(pca$sdev^2))
+pd <- data.frame(percent = percent, PC = 1:length(percent))
+ggplot(pd, aes(x = PC, y = percent)) + geom_col() 
+
+```
+
+
+To begin with, I chose to use PCA as the primary factor of my observation of the variance due to the fact that I had a large number of numerical variables. In accordance to the putput, I have 9 PCAs 2.347772e+00 1.340472e+00 9.834541e-01 7.479747e-01 3.724676e-01 1.553780e-01 3.793852e-02 1.168221e-02 (in order of PCA) all surmounting to the variance of 1.610627e-15. In accordance to the 1st PCA graph, it is clear that shorter male population countries had a much higher varince and more unique and spread values in comaprsion to countries with taller people on average. In overall, according to this study is ultimately clear that the nominal GDP of a nation state is varied and reflects the overall state of  nation rather than the progress of individuals thsu it is not completely wise to compare it against the personal health metrics of an average population, rather the per capita data of GDP is more suitable. However, this study is able to point out larger disparities where countries with less healtheir populations and shorter populations with large economies are not dong enough for their citizens. 
+
